@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok US Ban Status</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background-color: #000; /* Black background */
+      color: #fff; /* White text */
+    }
+    h1 {
+      color: #fff; /* Yellow for contrast */
+    }
+    #status {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    #timestamp {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #ccc; /* Light gray for subtle contrast */
+    }
+    
+    /* Debug section */
+    #debug {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.7); /* Transparent black */
+      color: #fff;
+      font-size: 14px;
+      border-radius: 5px;
+      z-index: 1000;
+    }
+
+    /* IP and Location section */
+    #ip-location {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.7); /* Transparent black */
+      color: #fff;
+      font-size: 14px;
+      border-radius: 5px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <h1>TikTok US Ban Status</h1>
+  <p>Last updated: <span id="timestamp">Checking...</span></p>
+  <div id="status">Checking...</div>
+
+  <!-- Debug output -->
+  <div id="debug">🚀 Debugging...</div>
+
+  <!-- IP and Location output -->
+  <div id="ip-location">🌍 IP: Loading... | Location: Loading...</div>
+
+  <script>
+    // Custom log function to send log messages to both console and the debug box
+    function logDebug(message) {
+      // Log to console
+      console.log(message);
+
+      // Update the debug box with the message
+      const debugBox = document.getElementById('debug');
+      debugBox.textContent = message;
+    }
+
+    // Wait for the DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      // Function to get the user's IP and location using GeoJS
+      async function fetchIpLocation() {
+        try {
+          // Fetch IP and Location details from GeoJS
+          const response = await fetch('https://get.geojs.io/v1/ip/geo.json');
+          const data = await response.json();
+
+          // Get the user's IP and location information
+          const ip = data.ip;
+          const location = `${data.city}, ${data.region}, ${data.country}`;
+
+          // Update the IP and Location display
+          document.getElementById('ip-location').innerHTML = `🌍 IP: ${ip} | Location: ${location}`;
+
+          // Log for debugging
+          logDebug(`🌍 User IP: ${ip}, Location: ${location}`);
+
+          // Check if the location is in the US
+          if (data.country !== 'United States') {
+            // Not a US IP
+            document.getElementById('ip-location').innerHTML = 'Not a US IP. Please use a US IP for US updates.⚠️ ' + 
+              '<a href="https://protonvpn.com" target="_blank" rel="noopener noreferrer">[ProtonVPN]</a> ' +
+              '<a href="https://windscribe.com" target="_blank" rel="noopener noreferrer">[Windscribe]</a>';
+          }
+        } catch (error) {
+          console.error('Error fetching IP and location:', error);
+          document.getElementById('ip-location').textContent = '🌍 IP/Location: Error';
+        }
+      }
+
+      // Call the fetchIpLocation function
+      fetchIpLocation();
+
+      // Function to check TikTok status
+      async function checkTikTokStatus() {
+        try {
+          // Debug: Show "Fetching" message
+          logDebug('🔄 Starting to fetch TikTok status...');
+          
+          // Fetch request to the backend
+          logDebug('🔍 Sending request to /check-tiktok...');
+          const response = await fetch('/check-tiktok');
+          
+          // Debug: Show request completion and response data
+          logDebug('✅ Request sent. Awaiting response...');
+          const data = await response.json();
+          
+          // Debug: Response received
+          logDebug('📦 Response received: ' + JSON.stringify(data));
+
+          // Update status and timestamp
+          document.getElementById('status').textContent = data.status;
+          document.getElementById('timestamp').textContent = data.timestamp;
+
+          // Debug: Update message after status change
+          logDebug(`🔑 Status updated: ${data.status}`);
+
+        } catch (error) {
+          // Debug: Error handling
+          logDebug('❌ Fetch Error: ' + error.message);
+          document.getElementById('status').textContent = '⚠️ Error checking TikTok';
+          document.getElementById('debug').textContent = '⚠️ Fetch Error';
+
+          // More error details for debugging
+          logDebug('🔴 Error occurred during TikTok status fetch: ' + error.message);
+          logDebug('📝 Error stack: ' + error.stack);
+        }
+      }
+
+      // Debug: Initial call to check TikTok status
+      logDebug('🔄 Initial TikTok status check...');
+      checkTikTokStatus();
+
+      // Update the IP location and check TikTok status every 20 seconds
+      setInterval(() => {
+        logDebug('🔄 Re-checking IP and TikTok status...');
+        fetchIpLocation();
+        checkTikTokStatus();
+      }, 20000);  // 20 seconds
+    });
+  </script>
+</body>
+</html>
